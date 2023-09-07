@@ -1,12 +1,15 @@
 package com.lebato.review.api;
 
 import com.lebato.review.api.request.CreateAndEditRestaurantRequest;
+import com.lebato.review.model.RestaurantEntity;
 import com.lebato.review.service.RestaurantService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+@RequiredArgsConstructor
 @RestController
 public class RestaurantApi {
-//    private final RestaurantService restaurantService;
+    private final RestaurantService restaurantService;
     @GetMapping("/restaurants")
     public String getRestaurants() {
         return "This is getRestaurans";
@@ -18,19 +21,18 @@ public class RestaurantApi {
     }
 
     @PostMapping("/restaurant")
-    public String createRestaurant(@RequestBody CreateAndEditRestaurantRequest request) {
-        return "This is createRestaurant, Name= "+request.getName() + "address : "+request.getAddress()
-                + ", menu[0].name= "+request.getMenus().get(0).getName()+" , price: "+request.getMenus().get(0).getPrice();
+    public void createRestaurant(@RequestBody CreateAndEditRestaurantRequest request) {
+        restaurantService.createRestaurant(request);
     }
 
     @PutMapping("/restaurant/{restaurantId}")
-    public String editRestaurant(@PathVariable Long restaurantId,
+    public void editRestaurant(@PathVariable Long restaurantId,
                                  @RequestBody CreateAndEditRestaurantRequest request) {
-        return "This is editRestaurant, "+restaurantId +"name= "+request.getName()+" address: "+request.getAddress();
+        restaurantService.editRestaurant(restaurantId, request);
     }
 
     @DeleteMapping("/restaurant/{restaurantId}")
-    public String deleteRestaurant(@PathVariable Long restaurantId) {
-        return "This is deleteRestaurant, "+restaurantId;
+    public void deleteRestaurant(@PathVariable Long restaurantId) {
+        restaurantService.deleteRestaurant(restaurantId);
     }
 }
