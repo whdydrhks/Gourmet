@@ -1,16 +1,21 @@
 package com.lebato.review.service;
 
 import com.lebato.review.api.request.CreateAndEditRestaurantRequest;
+import com.lebato.review.api.response.RestaurantDetailView;
+import com.lebato.review.api.response.RestaurantView;
 import com.lebato.review.model.MenuEntity;
 import com.lebato.review.model.RestaurantEntity;
 import com.lebato.review.repository.MenuRepository;
 import com.lebato.review.repository.RestaurantRepository;
-import jakarta.transaction.Transactional;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
 import java.util.List;
+
+import static java.util.stream.Collectors.toList;
 
 @RequiredArgsConstructor
 @Service
@@ -72,5 +77,43 @@ public class RestaurantService {
 
         List<MenuEntity> menus = menuRepository.findAllByRestaurantId(restaurantId);
         menuRepository.deleteAll(menus);
+    }
+
+    @Transactional(readOnly = true) // 실제 데이터를 수정, 삭제 없이 조회만 하므로 readOnly=true 설정.
+    public List<RestaurantView> getAllRestaurants() {
+        List<RestaurantEntity> restaurants = restaurantRepository.findAll();
+
+        return restaurants.stream().map((restaurant) -> RestaurantView.builder()
+                .id(restaurant.getId())
+                .name(restaurant.getName())
+                .address(restaurant.getAddress())
+                .createdAt(restaurant.getCreatedAt())
+                .updatedAt(restaurant.getUpdatedAt())
+                .build()
+        ).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public RestaurantDetailView getRestaurantDetail(Long restaurantId) {
+        RestaurantEntity restaurant = restaurantRepository.findById(restaurantId).orElseThrow();
+        List<MenuEntity> menus = menuRepository.findAllByRestaurantId(restaurantId);
+
+        return RestaurantDetailView.builder()
+                .id(restaurant.getId())
+                .name(restaurant.getName())
+                .address(restaurant.getAddress())
+                .updatedAt(restaurant.getUpdatedAt())
+                .createdAt(restaurant.getCreatedAt())
+                .menus(
+                        menus.stream().map((menu) -> RestaurantDetailView.Menu.builder()
+                                .id(menu.getId())
+                                .name(menu.getName())
+                                .price(menu.getPrice())
+                                .creadtedAt(menu.getCreatedAt())
+                                .updatedAt(menu.getUpdatedAt())
+                                .build()
+                        ).toList()
+                )
+                .build();
     }
 }
