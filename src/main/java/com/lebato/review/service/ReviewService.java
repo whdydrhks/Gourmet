@@ -3,7 +3,10 @@ package com.lebato.review.service;
 import com.lebato.review.model.ReviewEntity;
 import com.lebato.review.repository.RestaurantRepository;
 import com.lebato.review.repository.ReviewRepository;
+import com.lebato.review.service.dto.ReviewDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,5 +36,21 @@ public class ReviewService {
         ReviewEntity review = reviewRepository.findById(reviewId).orElseThrow();
 
         reviewRepository.delete(review);
+    }
+
+    public ReviewDto getRestaurantReview(Long restaurantId, Pageable page) {
+        Double avgScore = reviewRepository.getAvgScoreByRestaurantId(restaurantId);
+        Slice<ReviewEntity> reviews = reviewRepository.findSliceByRestaurantId(restaurantId, page);
+
+        return ReviewDto.builder()
+                .avgScore(avgScore)
+                .reviews(reviews.getContent())
+                .page(
+                        ReviewDto.ReviewDtoPage.builder()
+                                .offset(page.getPageNumber() * page.getPageSize())
+                                .limit(page.getPageSize())
+                                .build()
+                )
+                .build();
     }
 }
